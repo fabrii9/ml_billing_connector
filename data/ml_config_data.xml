@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Datos de configuración inicial (opcional) -->
+        <!-- Puedes descomentar y personalizar si quieres crear una configuración por defecto -->
+        
+        <!--
+        <record id="ml_config_default" model="ml.api.config">
+            <field name="name">Configuración ML Principal</field>
+            <field name="environment">production</field>
+            <field name="country_code">MLA</field>
+        </record>
+        -->
+
+    </data>
+</odoo>

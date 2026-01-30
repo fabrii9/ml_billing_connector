@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Form View -->
+        <record id="view_ml_import_operations_wizard_form" model="ir.ui.view">
+            <field name="name">ml.import.operations.wizard.form</field>
+            <field name="model">ml.import.operations.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Importar Operaciones de Mercado Libre">
+                    <sheet>
+                        <group attrs="{'invisible': [('state', '!=', 'draft')]}">
+                            <group string="Configuración">
+                                <field name="config_id" options="{'no_create': True}"/>
+                            </group>
+                            <group string="Rango de Fechas">
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </group>
+                            <group string="Opciones">
+                                <field name="limit_per_page"/>
+                            </group>
+                        </group>
+                        
+                        <group attrs="{'invisible': [('state', '=', 'draft')]}">
+                            <field name="state" invisible="1"/>
+                            
+                            <div class="alert alert-info" role="alert" 
+                                 attrs="{'invisible': [('state', '!=', 'importing')]}">
+                                <p><i class="fa fa-spinner fa-spin"/> Importando operaciones...</p>
+                                <p>Este proceso puede tardar varios minutos dependiendo de la cantidad de operaciones.</p>
+                            </div>
+                            
+                            <div class="alert alert-success" role="alert" 
+                                 attrs="{'invisible': [('state', '!=', 'done')]}">
+                                <p><i class="fa fa-check-circle"/> Importación completada</p>
+                            </div>
+                            
+                            <div class="alert alert-danger" role="alert" 
+                                 attrs="{'invisible': [('state', '!=', 'error')]}">
+                                <p><i class="fa fa-exclamation-triangle"/> Error en la importación</p>
+                            </div>
+                            
+                            <group string="Estadísticas" attrs="{'invisible': [('state', 'in', ['draft', 'importing'])]}">
+                                <group>
+                                    <field name="total_fetched" readonly="1"/>
+                                    <field name="total_created" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="total_updated" readonly="1"/>
+                                    <field name="total_errors" readonly="1"/>
+                                </group>
+                            </group>
+                            
+                            <group string="Resultado" attrs="{'invisible': [('result_message', '=', False)]}">
+                                <field name="result_message" nolabel="1" readonly="1" 
+                                       widget="text"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button string="Importar" 
+                                name="action_import_operations" 
+                                type="object" 
+                                class="btn-primary"
+                                attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        <button string="Ver Operaciones" 
+                                name="action_view_result" 
+                                type="object" 
+                                class="btn-primary"
+                                attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                        <button string="Nueva Importación" 
+                                name="action_reset" 
+                                type="object"
+                                attrs="{'invisible': [('state', 'in', ['draft', 'importing'])]}"/>
+                        <button string="Cancelar" 
+                                class="btn-secondary" 
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_ml_import_operations_wizard" model="ir.actions.act_window">
+            <field name="name">Importar Operaciones ML</field>
+            <field name="res_model">ml.import.operations.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="model_ml_operation"/>
+        </record>
+
+    </data>
+</odoo>

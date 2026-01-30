@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu Root -->
+        <menuitem id="menu_ml_root"
+                  name="Mercado Libre"
+                  sequence="95"/>
+
+        <!-- Configuration Menu -->
+        <menuitem id="menu_ml_configuration"
+                  name="Configuración"
+                  parent="menu_ml_root"
+                  sequence="100"
+                  groups="ml_billing_connector.group_ml_manager"/>
+
+        <menuitem id="menu_ml_api_config"
+                  name="Conexión API"
+                  parent="menu_ml_configuration"
+                  action="action_ml_api_config"
+                  sequence="10"/>
+
+        <!-- Operations Menu -->
+        <menuitem id="menu_ml_operations"
+                  name="Operaciones"
+                  parent="menu_ml_root"
+                  sequence="10"
+                  groups="ml_billing_connector.group_ml_user"/>
+
+        <menuitem id="menu_ml_operation_list"
+                  name="Todas las Operaciones"
+                  parent="menu_ml_operations"
+                  action="action_ml_operation"
+                  sequence="10"/>
+
+        <menuitem id="menu_ml_import_operations"
+                  name="Importar Operaciones"
+                  parent="menu_ml_operations"
+                  action="action_ml_import_operations_wizard"
+                  sequence="20"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Categoría de Aplicación -->
+        <record id="module_category_ml_billing" model="ir.module.category">
+            <field name="name">Mercado Libre</field>
+            <field name="description">Integración con Mercado Libre</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- Grupo: ML User (Usuario básico) -->
+        <record id="group_ml_user" model="res.groups">
+            <field name="name">ML User</field>
+            <field name="category_id" ref="module_category_ml_billing"/>
+            <field name="comment">Usuario puede ver operaciones de Mercado Libre</field>
+        </record>
+
+        <!-- Grupo: ML Manager (Administrador) -->
+        <record id="group_ml_manager" model="res.groups">
+            <field name="name">ML Manager</field>
+            <field name="category_id" ref="module_category_ml_billing"/>
+            <field name="implied_ids" eval="[(4, ref('group_ml_user'))]"/>
+            <field name="comment">Administrador puede configurar la conexión y gestionar todas las operaciones</field>
+        </record>
+
+        <!-- Reglas de Registro Multi-Compañía -->
+        
+        <!-- Regla: ML Config - Usuario puede ver solo de su compañía -->
+        <record id="ml_api_config_comp_rule" model="ir.rule">
+            <field name="name">ML Config: multi-company</field>
+            <field name="model_id" ref="model_ml_api_config"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="global" eval="True"/>
+        </record>
+
+        <!-- Regla: ML Operation - Usuario puede ver solo de su compañía -->
+        <record id="ml_operation_comp_rule" model="ir.rule">
+            <field name="name">ML Operation: multi-company</field>
+            <field name="model_id" ref="model_ml_operation"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="global" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

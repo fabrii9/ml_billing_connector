@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Template: OAuth Success -->
+        <template id="oauth_success" name="ML OAuth Success">
+            <t t-call="web.layout">
+                <div class="container mt-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="alert alert-success" role="alert">
+                                <h4 class="alert-heading">
+                                    <i class="fa fa-check-circle"/> ¡Conexión exitosa!
+                                </h4>
+                                <p>
+                                    Su cuenta de Mercado Libre ha sido conectada correctamente.
+                                </p>
+                                <hr/>
+                                <p class="mb-0">
+                                    <strong>Seller ID:</strong> <t t-esc="config.seller_id"/><br/>
+                                    <strong>Estado:</strong> Conectado<br/>
+                                    <strong>Expiración del token:</strong> <t t-esc="config.token_expiration"/>
+                                </p>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="/web" class="btn btn-primary">
+                                    <i class="fa fa-arrow-left"/> Volver a Odoo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <!-- Template: OAuth Error -->
+        <template id="oauth_error" name="ML OAuth Error">
+            <t t-call="web.layout">
+                <div class="container mt-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="alert alert-danger" role="alert">
+                                <h4 class="alert-heading">
+                                    <i class="fa fa-exclamation-triangle"/> Error en la conexión
+                                </h4>
+                                <p>
+                                    No se pudo completar la conexión con Mercado Libre.
+                                </p>
+                                <hr/>
+                                <p class="mb-0">
+                                    <strong>Error:</strong> <t t-esc="error"/><br/>
+                                    <strong>Descripción:</strong> <t t-esc="error_description"/>
+                                </p>
+                            </div>
+                            
+                            <div class="alert alert-info" role="info">
+                                <strong>¿Qué hacer?</strong>
+                                <ul>
+                                    <li>Verifica que las credenciales (Client ID y Client Secret) sean correctas</li>
+                                    <li>Asegúrate de que la Redirect URI esté configurada en tu aplicación de ML</li>
+                                    <li>Revisa los permisos de tu aplicación en el portal de desarrolladores de ML</li>
+                                    <li>Contacta al administrador del sistema si el problema persiste</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="/web#action=ml_billing_connector.action_ml_api_config" class="btn btn-primary">
+                                    <i class="fa fa-arrow-left"/> Volver a Configuración
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+    </data>
+</odoo>

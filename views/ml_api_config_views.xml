@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Form View -->
+        <record id="view_ml_api_config_form" model="ir.ui.view">
+            <field name="name">ml.api.config.form</field>
+            <field name="model">ml.api.config</field>
+            <field name="arch" type="xml">
+                <form string="Configuración API Mercado Libre">
+                    <header>
+                        <button name="action_connect_ml" 
+                                string="Conectar con Mercado Libre" 
+                                type="object" 
+                                class="oe_highlight"
+                                attrs="{'invisible': [('state', '=', 'connected')]}"/>
+                        <button name="action_refresh_token" 
+                                string="Renovar Token" 
+                                type="object"
+                                attrs="{'invisible': [('state', '!=', 'connected')]}"/>
+                        <button name="action_test_connection" 
+                                string="Probar Conexión" 
+                                type="object"
+                                attrs="{'invisible': [('state', '!=', 'connected')]}"/>
+                        <field name="state" widget="statusbar" 
+                               statusbar_visible="disconnected,connected"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="%(action_ml_operation)d"
+                                    type="action"
+                                    class="oe_stat_button"
+                                    icon="fa-shopping-cart"
+                                    context="{'search_default_config_id': active_id}">
+                                <field name="id" invisible="1"/>
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_text">Operaciones</span>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <widget name="web_ribbon" title="Desconectado" 
+                                bg_color="bg-danger" 
+                                attrs="{'invisible': [('state', '!=', 'disconnected')]}"/>
+                        <widget name="web_ribbon" title="Conectado" 
+                                bg_color="bg-success" 
+                                attrs="{'invisible': [('state', '!=', 'connected')]}"/>
+                        <widget name="web_ribbon" title="Token Expirado" 
+                                bg_color="bg-warning" 
+                                attrs="{'invisible': [('state', '!=', 'expired')]}"/>
+                        
+                        <group>
+                            <group string="Información General">
+                                <field name="name"/>
+                                <field name="active"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="environment"/>
+                                <field name="country_code"/>
+                            </group>
+                            <group string="Estado">
+                                <field name="seller_id" readonly="1"/>
+                                <field name="last_sync_date" readonly="1"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Credenciales OAuth2">
+                            <group>
+                                <field name="client_id" password="True"/>
+                                <field name="client_secret" password="True"/>
+                            </group>
+                            <group>
+                                <field name="redirect_uri" readonly="1"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Tokens" attrs="{'invisible': [('access_token', '=', False)]}">
+                            <group>
+                                <field name="access_token" password="True" readonly="1"/>
+                                <field name="refresh_token" password="True" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="token_expiration" readonly="1"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Último Error" attrs="{'invisible': [('last_error', '=', False)]}">
+                            <field name="last_error" nolabel="1" readonly="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="view_ml_api_config_tree" model="ir.ui.view">
+            <field name="name">ml.api.config.tree</field>
+            <field name="model">ml.api.config</field>
+            <field name="arch" type="xml">
+                <tree string="Configuraciones ML">
+                    <field name="name"/>
+                    <field name="environment"/>
+                    <field name="country_code"/>
+                    <field name="seller_id"/>
+                    <field name="state" decoration-success="state == 'connected'" 
+                           decoration-danger="state == 'disconnected'"
+                           decoration-warning="state == 'expired'"/>
+                    <field name="last_sync_date"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_ml_api_config" model="ir.actions.act_window">
+            <field name="name">Configuración API Mercado Libre</field>
+            <field name="res_model">ml.api.config</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Configure su conexión con Mercado Libre
+                </p>
+                <p>
+                    Configure las credenciales de su aplicación de Mercado Libre
+                    y establezca la conexión OAuth2 para importar operaciones.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

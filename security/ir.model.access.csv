@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_ml_api_config_user,ml.api.config.user,model_ml_api_config,group_ml_user,1,0,0,0
+access_ml_api_config_manager,ml.api.config.manager,model_ml_api_config,group_ml_manager,1,1,1,1
+
+access_ml_operation_user,ml.operation.user,model_ml_operation,group_ml_user,1,0,0,0
+access_ml_operation_manager,ml.operation.manager,model_ml_operation,group_ml_manager,1,1,1,1
+
+access_ml_operation_fee_user,ml.operation.fee.user,model_ml_operation_fee,group_ml_user,1,0,0,0
+access_ml_operation_fee_manager,ml.operation.fee.manager,model_ml_operation_fee,group_ml_manager,1,1,1,1
+
+access_ml_operation_tag_user,ml.operation.tag.user,model_ml_operation_tag,group_ml_user,1,0,0,0
+access_ml_operation_tag_manager,ml.operation.tag.manager,model_ml_operation_tag,group_ml_manager,1,1,1,1
+
+access_ml_import_wizard_user,ml.import.operations.wizard.user,model_ml_import_operations_wizard,group_ml_user,1,1,1,1
+access_ml_import_wizard_manager,ml.import.operations.wizard.manager,model_ml_import_operations_wizard,group_ml_manager,1,1,1,1

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Form View -->
+        <record id="view_ml_operation_form" model="ir.ui.view">
+            <field name="name">ml.operation.form</field>
+            <field name="model">ml.operation</field>
+            <field name="arch" type="xml">
+                <form string="Operación Mercado Libre">
+                    <header>
+                        <button name="action_refresh_from_ml" 
+                                string="Actualizar desde ML" 
+                                type="object"/>
+                        <button name="action_view_items_detail" 
+                                string="Ver Detalle Items" 
+                                type="object"/>
+                        <field name="status" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="order_id" readonly="1"/>
+                            </h1>
+                        </div>
+                        
+                        <group>
+                            <group string="Información General">
+                                <field name="date_created"/>
+                                <field name="date_closed"/>
+                                <field name="date_approved"/>
+                                <field name="payment_status" 
+                                       decoration-success="payment_status == 'approved'"
+                                       decoration-danger="payment_status in ['rejected', 'cancelled']"
+                                       decoration-warning="payment_status in ['pending', 'in_process']"/>
+                                <field name="pack_id"/>
+                                <field name="item_count"/>
+                            </group>
+                            <group string="Importes">
+                                <field name="currency_id" invisible="1"/>
+                                <field name="currency_code"/>
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="item_amount" widget="monetary"/>
+                                <field name="shipping_amount" widget="monetary"/>
+                                <field name="tax_amount" widget="monetary"/>
+                                <field name="total_fees" widget="monetary" 
+                                       class="text-danger"/>
+                                <field name="net_amount" widget="monetary" 
+                                       class="text-success font-weight-bold"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Datos Fiscales del Comprador">
+                            <group>
+                                <field name="buyer_doc_type"/>
+                                <field name="buyer_doc_number"/>
+                                <field name="buyer_name"/>
+                                <field name="buyer_nickname"/>
+                            </group>
+                            <group>
+                                <field name="buyer_email" widget="email"/>
+                                <field name="buyer_phone" widget="phone"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Dirección de Envío">
+                            <field name="shipping_address"/>
+                            <field name="shipping_city"/>
+                            <field name="shipping_state"/>
+                            <field name="shipping_zip_code"/>
+                        </group>
+                        
+                        <notebook>
+                            <page string="Comisiones y Cargos" name="fees">
+                                <field name="fee_ids">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="fee_type"/>
+                                        <field name="description"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="amount" widget="monetary" sum="Total"/>
+                                        <field name="notes"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="JSON Completo" name="raw_json">
+                                <group>
+                                    <field name="raw_json" nolabel="1" widget="ace" 
+                                           options="{'mode': 'json'}" readonly="1"/>
+                                </group>
+                            </page>
+                            <page string="Billing Info" name="billing_info" 
+                                  attrs="{'invisible': [('raw_billing_info', '=', False)]}">
+                                <group>
+                                    <field name="raw_billing_info" nolabel="1" widget="ace" 
+                                           options="{'mode': 'json'}" readonly="1"/>
+                                </group>
+                            </page>
+                            <page string="Información Adicional" name="additional">
+                                <group>
+                                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                    <field name="notes"/>
+                                    <field name="config_id"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="imported_date"/>
+                                    <field name="last_updated"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="view_ml_operation_tree" model="ir.ui.view">
+            <field name="name">ml.operation.tree</field>
+            <field name="model">ml.operation</field>
+            <field name="arch" type="xml">
+                <tree string="Operaciones ML" 
+                      decoration-success="payment_status == 'approved'"
+                      decoration-danger="payment_status in ['rejected', 'cancelled']"
+                      decoration-muted="status == 'cancelled'">
+                    <field name="order_id"/>
+                    <field name="date_created"/>
+                    <field name="buyer_doc_type"/>
+                    <field name="buyer_doc_number"/>
+                    <field name="buyer_name"/>
+                    <field name="status"/>
+                    <field name="payment_status"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="total_amount" widget="monetary" sum="Total"/>
+                    <field name="total_fees" widget="monetary" sum="Comisiones"/>
+                    <field name="net_amount" widget="monetary" sum="Neto" 
+                           decoration-bf="1"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_ml_operation_search" model="ir.ui.view">
+            <field name="name">ml.operation.search</field>
+            <field name="model">ml.operation</field>
+            <field name="arch" type="xml">
+                <search string="Buscar Operaciones">
+                    <field name="order_id"/>
+                    <field name="buyer_name"/>
+                    <field name="buyer_doc_number"/>
+                    <field name="buyer_nickname"/>
+                    
+                    <filter string="Pagadas" name="paid" 
+                            domain="[('payment_status', '=', 'approved')]"/>
+                    <filter string="Pendientes" name="pending" 
+                            domain="[('payment_status', 'in', ['pending', 'in_process'])]"/>
+                    <filter string="Canceladas" name="cancelled" 
+                            domain="[('payment_status', 'in', ['rejected', 'cancelled'])]"/>
+                    
+                    <separator/>
+                    
+                    <filter string="Hoy" name="today" 
+                            domain="[('date_created', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)), 
+                                    ('date_created', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]"/>
+                    <filter string="Esta Semana" name="this_week" 
+                            domain="[('date_created', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                    ('date_created', '&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                    <filter string="Este Mes" name="this_month" 
+                            domain="[('date_created', '&gt;=', datetime.datetime.now().strftime('%Y-%m-01'))]"/>
+                    <filter string="Último Mes" name="last_month" 
+                            domain="[('date_created', '&gt;=', (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                    
+                    <separator/>
+                    
+                    <filter string="Con CUIT" name="with_cuit" 
+                            domain="[('buyer_doc_type', '=', 'CUIT')]"/>
+                    <filter string="Con DNI" name="with_dni" 
+                            domain="[('buyer_doc_type', '=', 'DNI')]"/>
+                    
+                    <group expand="0" string="Agrupar Por">
+                        <filter string="Estado" name="group_status" 
+                                context="{'group_by': 'status'}"/>
+                        <filter string="Estado de Pago" name="group_payment_status" 
+                                context="{'group_by': 'payment_status'}"/>
+                        <filter string="Fecha Creación" name="group_date" 
+                                context="{'group_by': 'date_created:month'}"/>
+                        <filter string="Tipo Documento" name="group_doc_type" 
+                                context="{'group_by': 'buyer_doc_type'}"/>
+                        <filter string="Configuración" name="group_config" 
+                                context="{'group_by': 'config_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Kanban View (opcional pero útil) -->
+        <record id="view_ml_operation_kanban" model="ir.ui.view">
+            <field name="name">ml.operation.kanban</field>
+            <field name="model">ml.operation</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="order_id"/>
+                    <field name="date_created"/>
+                    <field name="buyer_name"/>
+                    <field name="total_amount"/>
+                    <field name="net_amount"/>
+                    <field name="currency_id"/>
+                    <field name="payment_status"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <div class="oe_kanban_details">
+                                    <strong>
+                                        <field name="order_id"/>
+                                    </strong>
+                                    <div>
+                                        <field name="buyer_name"/>
+                                    </div>
+                                    <div>
+                                        <field name="date_created" widget="date"/>
+                                    </div>
+                                    <div class="text-muted">
+                                        Total: <field name="total_amount" widget="monetary"/>
+                                    </div>
+                                    <div class="text-success">
+                                        Neto: <field name="net_amount" widget="monetary"/>
+                                    </div>
+                                    <div>
+                                        <field name="payment_status" widget="label" 
+                                               decoration-success="payment_status == 'approved'"
+                                               decoration-warning="payment_status in ['pending', 'in_process']"
+                                               decoration-danger="payment_status in ['rejected', 'cancelled']"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Pivot View (para análisis) -->
+        <record id="view_ml_operation_pivot" model="ir.ui.view">
+            <field name="name">ml.operation.pivot</field>
+            <field name="model">ml.operation</field>
+            <field name="arch" type="xml">
+                <pivot string="Análisis de Operaciones">
+                    <field name="date_created" type="row" interval="month"/>
+                    <field name="payment_status" type="col"/>
+                    <field name="total_amount" type="measure"/>
+                    <field name="net_amount" type="measure"/>
+                    <field name="total_fees" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Graph View -->
+        <record id="view_ml_operation_graph" model="ir.ui.view">
+            <field name="name">ml.operation.graph</field>
+            <field name="model">ml.operation</field>
+            <field name="arch" type="xml">
+                <graph string="Gráfico de Operaciones" type="bar">
+                    <field name="date_created" interval="month"/>
+                    <field name="net_amount" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_ml_operation" model="ir.actions.act_window">
+            <field name="name">Operaciones Mercado Libre</field>
+            <field name="res_model">ml.operation</field>
+            <field name="view_mode">tree,kanban,form,pivot,graph</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No hay operaciones importadas todavía
+                </p>
+                <p>
+                    Utilice el asistente de importación para traer operaciones desde Mercado Libre.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>
