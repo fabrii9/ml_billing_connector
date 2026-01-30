@@ -399,10 +399,11 @@ class MlOperation(models.Model):
             
             while has_more:
                 # Parámetros de búsqueda
+                # ML requiere formato ISO con timezone (Z para UTC)
                 params = {
                     'seller': config.seller_id,
-                    'order.date_created.from': date_from.isoformat(),
-                    'order.date_created.to': date_to.isoformat(),
+                    'order.date_created.from': date_from.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                    'order.date_created.to': date_to.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
                     'sort': 'date_desc',
                     'limit': limit,
                     'offset': offset,
