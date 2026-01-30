@@ -221,6 +221,16 @@ class MlOperation(models.Model):
         except Exception as e:
             raise UserError(_(f'Error al actualizar: {str(e)}'))
 
+    @staticmethod
+    def _safe_float(value, default=0.0):
+        """Convierte un valor a float de manera segura, manejando None y errores"""
+        if value is None:
+            return default
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return default
+
     def _update_from_api_data(self, order_data, update_mode=False):
         """
         Actualiza los campos del registro con datos de la API
@@ -246,22 +256,22 @@ class MlOperation(models.Model):
             date_approved = self._parse_ml_date(payments[0].get('date_approved'))
         
         # Calcular importes
-        total_amount = float(order_data.get('total_amount', 0))
-        paid_amount = float(order_data.get('paid_amount', 0))
+        total_amount = self._safe_float(order_data.get('total_amount'), 0)
+        paid_amount = self._safe_float(order_data.get('paid_amount'), 0)
         
         # Desglose (puede variar según la estructura de la orden)
         order_items = order_data.get('order_items', [])
-        item_amount = sum(float(item.get('unit_price', 0)) * item.get('quantity', 0) 
+        item_amount = sum(self._safe_float(item.get('unit_price'), 0) * item.get('quantity', 0) 
                          for item in order_items)
         
         shipping_amount = 0
         if order_data.get('shipping'):
-            shipping_amount = float(order_data.get('shipping', {}).get('cost', 0))
+            shipping_amount = self._safe_float(order_data.get('shipping', {}).get('cost'), 0)
         
         # Impuestos (si están disponibles)
         tax_amount = 0
         if order_data.get('taxes'):
-            tax_amount = float(order_data.get('taxes', {}).get('amount', 0))
+            tax_amount = self._safe_float(order_data.get('taxes', {}).get('amount'), 0)
         
         # Datos del comprador
         buyer = order_data.get('buyer', {})
@@ -518,7 +528,7 @@ class MlOperation(models.Model):
                     'operation_id': self.id,
                     'fee_type': 'marketplace_fee',
                     'description': 'Comisión Mercado Libre',
-                    'amount': abs(float(payment['marketplace_fee'])),
+                    'amount': abs(self._safe_float(payment.get('marketplace_fee'), 0)),
                     'currency_id': self.currency_id.id,
                 })
             
@@ -528,13 +538,13 @@ class MlOperation(models.Model):
                     'operation_id': self.id,
                     'fee_type': 'shipping_cost',
                     'description': 'Costo de Envío (Vendedor)',
-                    'amount': abs(float(payment['shipping_cost'])),
+                    'amount': abs(self._safe_float(payment.get('shipping_cost'), 0)),
                     'currency_id': self.currency_id.id,
                 })
             
             # Costo financiero
             if payment.get('transaction_amount_refunded'):
-                refunded = abs(float(payment['transaction_amount_refunded']))
+                refunded = abs(self._safe_float(payment.get('transaction_amount_refunded'), 0))
                 if refunded > 0:
                     self.env['ml.operation.fee'].create({
                         'operation_id': self.id,
