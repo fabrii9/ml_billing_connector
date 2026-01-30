@@ -420,11 +420,23 @@ class MlOperation(models.Model):
                 _logger.info(f"Procesando {len(results)} órdenes (offset: {offset})")
                 
                 # Procesar cada orden
-                for order_id in results:
+                for result in results:
                     try:
+                        # ML puede devolver solo IDs o objetos completos dependiendo del endpoint
+                        if isinstance(result, dict):
+                            # Si es un objeto, extraer el ID
+                            order_id = result.get('id')
+                            if not order_id:
+                                _logger.warning(f"Orden sin ID encontrada: {result}")
+                                stats['errors'] += 1
+                                continue
+                        else:
+                            # Si es un número/string, es el ID directamente
+                            order_id = result
+                        
                         self._import_single_operation(config, str(order_id), stats)
                     except Exception as e:
-                        _logger.error(f"Error al importar orden {order_id}: {str(e)}")
+                        _logger.error(f"Error al importar orden {result}: {str(e)}")
                         stats['errors'] += 1
                 
                 # Verificar si hay más resultados
