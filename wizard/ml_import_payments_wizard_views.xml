@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Wizard Form View -->
+    <record id="view_ml_import_payments_wizard_form" model="ir.ui.view">
+        <field name="name">ml.import.payments.wizard.form</field>
+        <field name="model">ml.import.payments.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar Pagos de Mercado Pago">
+                <group>
+                    <group>
+                        <field name="config_id" required="1" 
+                               options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                </group>
+                <group string="Rango de Fechas">
+                    <group>
+                        <field name="date_from" required="1"/>
+                    </group>
+                    <group>
+                        <field name="date_to" required="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_import" string="Importar Pagos" type="object" 
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ml_import_payments_wizard" model="ir.actions.act_window">
+        <field name="name">Importar Pagos MP</field>
+        <field name="res_model">ml.import.payments.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_ml_payment"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Tree View -->
+    <record id="view_ml_payment_tree" model="ir.ui.view">
+        <field name="name">ml.payment.tree</field>
+        <field name="model">ml.payment</field>
+        <field name="arch" type="xml">
+            <tree string="Pagos de Mercado Pago" create="false" delete="false">
+                <field name="date_approved"/>
+                <field name="payment_id"/>
+                <field name="external_reference"/>
+                <field name="description"/>
+                <field name="payer_identification_number"/>
+                <field name="payer_first_name"/>
+                <field name="payer_last_name"/>
+                <field name="payment_method_id"/>
+                <field name="installments"/>
+                <field name="transaction_amount" sum="Total"/>
+                <field name="mp_fee" sum="Total Comisiones"/>
+                <field name="net_amount" sum="Total Neto"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="status" decoration-success="status == 'approved'" 
+                       decoration-danger="status in ('rejected', 'cancelled')"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_ml_payment_form" model="ir.ui.view">
+        <field name="name">ml.payment.form</field>
+        <field name="model">ml.payment</field>
+        <field name="arch" type="xml">
+            <form string="Pago de Mercado Pago" create="false" delete="false">
+                <header>
+                    <field name="status" widget="statusbar" 
+                           statusbar_visible="pending,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_ml_payment_tree)d" 
+                                type="action" 
+                                class="oe_stat_button" 
+                                icon="fa-list">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Todos los Pagos</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="payment_id" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="description" readonly="1" placeholder="Sin descripción"/>
+                        </h3>
+                    </div>
+                    
+                    <group>
+                        <group name="payment_info" string="Información del Pago">
+                            <field name="date_approved" readonly="1"/>
+                            <field name="date_created" readonly="1"/>
+                            <field name="external_reference" readonly="1"/>
+                            <field name="order_id" readonly="1"/>
+                            <field name="status_detail" readonly="1"/>
+                        </group>
+                        
+                        <group name="amounts" string="Importes">
+                            <field name="transaction_amount" readonly="1" widget="monetary"/>
+                            <field name="mp_fee" readonly="1" widget="monetary"/>
+                            <field name="shipping_cost" readonly="1" widget="monetary"/>
+                            <field name="financing_fee" readonly="1" widget="monetary"/>
+                            <field name="taxes_amount" readonly="1" widget="monetary"/>
+                            <field name="net_amount" readonly="1" widget="monetary" 
+                                   class="oe_subtotal_footer_separator"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group name="payment_method" string="Método de Pago">
+                            <field name="payment_type" readonly="1"/>
+                            <field name="payment_method_id" readonly="1"/>
+                            <field name="installments" readonly="1"/>
+                            <field name="installment_amount" readonly="1" widget="monetary"
+                                   attrs="{'invisible': [('installments', '=', 1)]}"/>
+                            <field name="issuer_id" readonly="1"/>
+                            <field name="authorization_code" readonly="1"/>
+                        </group>
+                        
+                        <group name="payer_info" string="Información del Comprador">
+                            <field name="payer_id" readonly="1"/>
+                            <field name="payer_first_name" readonly="1"/>
+                            <field name="payer_last_name" readonly="1"/>
+                            <field name="payer_email" readonly="1"/>
+                            <field name="payer_identification_type" readonly="1"/>
+                            <field name="payer_identification_number" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page name="json" string="JSON Completo">
+                            <field name="raw_json" widget="ace" options="{'mode': 'json'}" readonly="1"/>
+                        </page>
+                        <page name="other" string="Información Adicional">
+                            <group>
+                                <field name="config_id" readonly="1"/>
+                                <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                                <field name="imported_date" readonly="1"/>
+                                <field name="date_last_modified" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_ml_payment_search" model="ir.ui.view">
+        <field name="name">ml.payment.search</field>
+        <field name="model">ml.payment</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Pagos">
+                <field name="payment_id"/>
+                <field name="external_reference"/>
+                <field name="payer_identification_number"/>
+                <field name="payer_first_name"/>
+                <field name="payer_email"/>
+                <field name="description"/>
+                
+                <filter name="approved" string="Aprobados" 
+                        domain="[('status', '=', 'approved')]"/>
+                <filter name="pending" string="Pendientes" 
+                        domain="[('status', '=', 'pending')]"/>
+                <filter name="this_month" string="Este Mes" 
+                        domain="[('date_approved', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="last_month" string="Mes Anterior" 
+                        domain="[('date_approved', '&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
+                                ('date_approved', '&lt;', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Agrupar Por">
+                    <filter name="group_date" string="Fecha" context="{'group_by': 'date_approved:month'}"/>
+                    <filter name="group_status" string="Estado" context="{'group_by': 'status'}"/>
+                    <filter name="group_payment_method" string="Método de Pago" context="{'group_by': 'payment_method_id'}"/>
+                    <filter name="group_payer" string="Comprador" context="{'group_by': 'payer_identification_number'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_ml_payment_pivot" model="ir.ui.view">
+        <field name="name">ml.payment.pivot</field>
+        <field name="model">ml.payment</field>
+        <field name="arch" type="xml">
+            <pivot string="Análisis de Pagos">
+                <field name="date_approved" type="row" interval="month"/>
+                <field name="payment_method_id" type="col"/>
+                <field name="transaction_amount" type="measure"/>
+                <field name="mp_fee" type="measure"/>
+                <field name="net_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_ml_payment_graph" model="ir.ui.view">
+        <field name="name">ml.payment.graph</field>
+        <field name="model">ml.payment</field>
+        <field name="arch" type="xml">
+            <graph string="Gráfico de Pagos" type="bar">
+                <field name="date_approved" interval="month"/>
+                <field name="net_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ml_payment_tree" model="ir.actions.act_window">
+        <field name="name">Pagos de Mercado Pago</field>
+        <field name="res_model">ml.payment</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="context">{'search_default_approved': 1, 'search_default_this_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay pagos importados
+            </p>
+            <p>
+                Use el botón "Importar Pagos" para traer los pagos desde Mercado Pago.
+            </p>
+        </field>
+    </record>
+
+</odoo>

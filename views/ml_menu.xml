@@ -38,5 +38,24 @@
                   action="action_ml_import_operations_wizard"
                   sequence="20"/>
 
+        <!-- Payments Menu -->
+        <menuitem id="menu_ml_payments"
+                  name="Pagos MP"
+                  parent="menu_ml_root"
+                  sequence="5"
+                  groups="ml_billing_connector.group_ml_user"/>
+
+        <menuitem id="menu_ml_payment_list"
+                  name="Todos los Pagos"
+                  parent="menu_ml_payments"
+                  action="action_ml_payment_tree"
+                  sequence="10"/>
+
+        <menuitem id="menu_ml_import_payments"
+                  name="Importar Pagos"
+                  parent="menu_ml_payments"
+                  action="action_ml_import_payments_wizard"
+                  sequence="20"/>
+
     </data>
 </odoo>
