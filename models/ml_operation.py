@@ -431,6 +431,8 @@ class MlOperation(models.Model):
                 
                 # Procesar cada orden
                 for result in results:
+                    # Usar savepoint para que un error en una orden no aborte toda la transacción
+                    savepoint_name = f'import_order_{offset}_{results.index(result)}'
                     try:
                         # ML puede devolver solo IDs o objetos completos dependiendo del endpoint
                         if isinstance(result, dict):
@@ -444,8 +446,17 @@ class MlOperation(models.Model):
                             # Si es un número/string, es el ID directamente
                             order_id = result
                         
+                        # Crear savepoint antes de procesar
+                        self.env.cr.execute(f'SAVEPOINT {savepoint_name}')
+                        
                         self._import_single_operation(config, str(order_id), stats)
+                        
+                        # Liberar savepoint si todo salió bien
+                        self.env.cr.execute(f'RELEASE SAVEPOINT {savepoint_name}')
+                        
                     except Exception as e:
+                        # Rollback al savepoint en caso de error
+                        self.env.cr.execute(f'ROLLBACK TO SAVEPOINT {savepoint_name}')
                         _logger.error(f"Error al importar orden {result}: {str(e)}")
                         stats['errors'] += 1
                 
