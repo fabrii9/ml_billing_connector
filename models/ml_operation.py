@@ -541,41 +541,48 @@ class MlOperation(models.Model):
         # Limpiar fees existentes
         self.fee_ids.unlink()
         
-        # Obtener payments
+        # Comisión de ML desde order_items (sale_fee)
+        order_items = order_data.get('order_items', [])
+        total_sale_fee = 0.0
+        for item in order_items:
+            sale_fee = self._safe_float(item.get('sale_fee'), 0)
+            if sale_fee > 0:
+                total_sale_fee += sale_fee
+        
+        if total_sale_fee > 0:
+            self.env['ml.operation.fee'].create({
+                'operation_id': self.id,
+                'fee_type': 'marketplace_fee',
+                'description': 'Comisión Mercado Libre',
+                'amount': total_sale_fee,
+                'currency_id': self.currency_id.id,
+            })
+        
+        # Obtener payments para otros cargos
         payments = order_data.get('payments', [])
         
         for payment in payments:
-            # Comisión de ML
-            if payment.get('marketplace_fee'):
-                self.env['ml.operation.fee'].create({
-                    'operation_id': self.id,
-                    'fee_type': 'marketplace_fee',
-                    'description': 'Comisión Mercado Libre',
-                    'amount': abs(self._safe_float(payment.get('marketplace_fee'), 0)),
-                    'currency_id': self.currency_id.id,
-                })
-            
             # Costo de envío para el vendedor
-            if payment.get('shipping_cost'):
+            shipping_cost = self._safe_float(payment.get('shipping_cost'), 0)
+            if shipping_cost > 0:
                 self.env['ml.operation.fee'].create({
                     'operation_id': self.id,
                     'fee_type': 'shipping_cost',
                     'description': 'Costo de Envío (Vendedor)',
-                    'amount': abs(self._safe_float(payment.get('shipping_cost'), 0)),
+                    'amount': shipping_cost,
                     'currency_id': self.currency_id.id,
                 })
             
-            # Costo financiero
-            if payment.get('transaction_amount_refunded'):
-                refunded = abs(self._safe_float(payment.get('transaction_amount_refunded'), 0))
-                if refunded > 0:
-                    self.env['ml.operation.fee'].create({
-                        'operation_id': self.id,
-                        'fee_type': 'refund',
-                        'description': 'Monto Reembolsado',
-                        'amount': refunded,
-                        'currency_id': self.currency_id.id,
-                    })
+            # Monto reembolsado
+            refunded = self._safe_float(payment.get('transaction_amount_refunded'), 0)
+            if refunded > 0:
+                self.env['ml.operation.fee'].create({
+                    'operation_id': self.id,
+                    'fee_type': 'refund',
+                    'description': 'Monto Reembolsado',
+                    'amount': refunded,
+                    'currency_id': self.currency_id.id,
+                })
 
 
 class MlOperationTag(models.Model):
