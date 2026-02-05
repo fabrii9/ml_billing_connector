@@ -244,6 +244,18 @@ class MlOperation(models.Model):
         if not currency:
             currency = self.env['res.currency'].search([('name', '=', 'ARS')], limit=1)
         
+        # Si aún no hay moneda, obtener la moneda de la compañía
+        if not currency:
+            currency = self.env.company.currency_id
+        
+        # Última salvaguarda: obtener cualquier moneda activa
+        if not currency:
+            currency = self.env['res.currency'].search([('active', '=', True)], limit=1)
+        
+        # Si todavía no hay moneda, esto es un error crítico
+        if not currency:
+            raise UserError(_('No se encontró ninguna moneda en el sistema. Por favor, active al menos una moneda.'))
+        
         # Parsear fechas
         date_created = self._parse_ml_date(order_data.get('date_created'))
         date_closed = self._parse_ml_date(order_data.get('date_closed'))
