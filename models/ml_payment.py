@@ -161,18 +161,24 @@ class MlPayment(models.Model):
             has_more = True
             
             while has_more:
-                # Parámetros para buscar pagos
+                # Obtener user_id si no está disponible
+                if not config.ml_user_id:
+                    user_info = config._make_api_request('/users/me')
+                    config.write({'ml_user_id': user_info.get('id')})
+                
+                # Parámetros para buscar pagos recibidos por el vendedor
+                # El endpoint correcto para payments es con el collector_id (user_id del vendedor)
                 params = {
-                    'range': 'date_approved',
-                    'begin_date': date_from.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
-                    'end_date': date_to.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                    'collector_id': config.ml_user_id,
+                    'begin_date': date_from.strftime('%Y-%m-%dT%H:%M:%S.000-00:00'),
+                    'end_date': date_to.strftime('%Y-%m-%dT%H:%M:%S.000-00:00'),
                     'sort': 'date_approved',
                     'criteria': 'desc',
                     'limit': limit,
                     'offset': offset,
                 }
                 
-                # Buscar pagos
+                # Usar el endpoint de búsqueda de pagos
                 search_result = config._make_api_request('/v1/payments/search', params=params)
                 
                 results = search_result.get('results', [])
