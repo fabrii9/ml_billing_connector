@@ -57,22 +57,16 @@ class MlImportPaymentsWizard(models.TransientModel):
                 'total': stats['total_fetched'],
             }
             
+            # Retornar acción para ver pagos importados
             return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('Importación Exitosa'),
-                    'message': message,
-                    'type': 'success',
-                    'sticky': False,
-                    'next': {
-                        'type': 'ir.actions.act_window',
-                        'name': _('Pagos Importados'),
-                        'res_model': 'ml.payment',
-                        'view_mode': 'tree,form',
-                        'domain': [('id', 'in', self.env['ml.payment'].search([]).ids)],
-                    }
-                }
+                'type': 'ir.actions.act_window',
+                'name': _('Pagos Importados'),
+                'res_model': 'ml.payment',
+                'view_mode': 'tree,form',
+                'domain': [('config_id', '=', self.config_id.id)],
+                'context': {
+                    'search_default_approved': 1,
+                },
             }
             
         except Exception as e:
