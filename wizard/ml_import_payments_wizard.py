@@ -29,11 +29,11 @@ class MlImportPaymentsWizard(models.TransientModel):
         self.ensure_one()
         
         if not self.config_id:
-            raise UserError(_('Debe configurar primero la conexión con Mercado Libre'))
+            raise UserError(_('Debe configurar primero la conexión con Mercado Pago'))
         
-        # Verificar que tengamos token
-        if not self.config_id.access_token:
-            raise UserError(_('Primero debe autorizar la aplicación con Mercado Libre'))
+        # Verificar que tengamos el access token de Mercado Pago
+        if not self.config_id.mp_access_token:
+            raise UserError(_('Debe configurar el Access Token de Mercado Pago en la configuración'))
         
         try:
             # Importar pagos
