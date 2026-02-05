@@ -30,6 +30,16 @@ class MlApiConfig(models.Model):
     # Seller Info
     seller_id = fields.Char(string='Seller ID', readonly=True, help='ID del vendedor en ML')
     
+    # Mercado Pago Configuration
+    mp_access_token = fields.Char(
+        string='MP Access Token', 
+        help='Access Token de Mercado Pago (desde https://www.mercadopago.com.ar/developers/panel)'
+    )
+    mp_public_key = fields.Char(
+        string='MP Public Key', 
+        help='Public Key de Mercado Pago (opcional)'
+    )
+    
     # Environment
     environment = fields.Selection([
         ('production', 'Producción'),
@@ -297,6 +307,60 @@ class MlApiConfig(models.Model):
             
         except requests.exceptions.RequestException as e:
             error_msg = f"Error en petición API ({method} {endpoint}): {str(e)}"
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_detail = e.response.json()
+                    error_msg += f"\nDetalle: {json.dumps(error_detail, indent=2)}"
+                except:
+                    error_msg += f"\nRespuesta: {e.response.text}"
+            
+            self.write({'last_error': error_msg})
+            _logger.error(error_msg)
+            raise UserError(_(error_msg))
+
+    def _make_mp_api_request(self, endpoint, method='GET', params=None, data=None):
+        """
+        Realiza una petición a la API de Mercado Pago
+        
+        :param endpoint: Endpoint de la API (ej: '/v1/payments/search')
+        :param method: Método HTTP (GET, POST, PUT, DELETE)
+        :param params: Parámetros de query string
+        :param data: Datos para POST/PUT
+        :return: Respuesta JSON
+        """
+        self.ensure_one()
+        
+        if not self.mp_access_token:
+            raise UserError(_('Debe configurar el Access Token de Mercado Pago'))
+        
+        url = f"https://api.mercadopago.com{endpoint}"
+        headers = {
+            'Authorization': f'Bearer {self.mp_access_token}',
+            'Content-Type': 'application/json',
+        }
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, params=params, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, headers=headers, params=params, json=data, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, headers=headers, params=params, json=data, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, params=params, timeout=30)
+            else:
+                raise ValueError(f"Método HTTP no soportado: {method}")
+            
+            # Manejo de rate limiting
+            if response.status_code == 429:
+                _logger.warning("Rate limit alcanzado en MP API")
+                raise UserError(_('Límite de peticiones alcanzado en Mercado Pago. Intente más tarde.'))
+            
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Error en petición MP API ({method} {endpoint}): {str(e)}"
             if hasattr(e, 'response') and e.response is not None:
                 try:
                     error_detail = e.response.json()

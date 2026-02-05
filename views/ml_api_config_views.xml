@@ -72,8 +72,17 @@
                                 <field name="redirect_uri" readonly="1"/>
                             </group>
                         </group>
-                        
-                        <group string="Tokens" attrs="{'invisible': [('access_token', '=', False)]}">
+                                                <group string="Mercado Pago API">
+                            <group>
+                                <field name="mp_access_token" password="True" 
+                                       placeholder="APP_USR-xxxxxxxxxx"/>
+                            </group>
+                            <group>
+                                <field name="mp_public_key" password="True" 
+                                       placeholder="APP_USR-xxxxxxxxxx (opcional)"/>
+                            </group>
+                        </group>
+                                                <group string="Tokens" attrs="{'invisible': [('access_token', '=', False)]}">
                             <group>
                                 <field name="access_token" password="True" readonly="1"/>
                                 <field name="refresh_token" password="True" readonly="1"/>
