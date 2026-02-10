@@ -18,5 +18,8 @@ access_ml_import_wizard_manager,ml.import.operations.wizard.manager,model_ml_imp
 access_ml_payment_user,ml.payment.user,model_ml_payment,group_ml_user,1,0,0,0
 access_ml_payment_manager,ml.payment.manager,model_ml_payment,group_ml_manager,1,1,1,1
 
+access_ml_payment_summary_user,ml.payment.summary.user,model_ml_payment_summary,group_ml_user,1,0,0,0
+access_ml_payment_summary_manager,ml.payment.summary.manager,model_ml_payment_summary,group_ml_manager,1,1,1,1
+
 access_ml_import_payments_wizard_user,ml.import.payments.wizard.user,model_ml_import_payments_wizard,group_ml_user,1,1,1,1
 access_ml_import_payments_wizard_manager,ml.import.payments.wizard.manager,model_ml_import_payments_wizard,group_ml_manager,1,1,1,1

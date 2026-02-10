@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Tree View -->
+    <record id="view_ml_payment_summary_tree" model="ir.ui.view">
+        <field name="name">ml.payment.summary.tree</field>
+        <field name="model">ml.payment.summary</field>
+        <field name="arch" type="xml">
+            <tree string="Resumen de Pagos" create="false" delete="false">
+                <field name="payment_id" string="ID Operación MP"/>
+                <field name="operation_type" string="Tipo de Operación"/>
+                <field name="amount" string="Valor de la Compra" sum="Total"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="date_approved" string="Fecha de Aprobación"/>
+                <field name="buyer_document_type" string="Tipo Doc"/>
+                <field name="buyer_document_number" string="Identificación del Comprador"/>
+                <field name="buyer_nickname"/>
+                <field name="order_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_ml_payment_summary_form" model="ir.ui.view">
+        <field name="name">ml.payment.summary.form</field>
+        <field name="model">ml.payment.summary</field>
+        <field name="arch" type="xml">
+            <form string="Detalle de Pago" create="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="payment_id" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Información del Pago">
+                            <field name="payment_id" readonly="1"/>
+                            <field name="operation_type" readonly="1"/>
+                            <field name="amount" readonly="1" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="date_approved" readonly="1"/>
+                        </group>
+                        
+                        <group string="Datos del Comprador">
+                            <field name="buyer_id" readonly="1"/>
+                            <field name="buyer_nickname" readonly="1"/>
+                            <field name="buyer_document_type" readonly="1"/>
+                            <field name="buyer_document_number" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Referencias">
+                            <field name="order_id" readonly="1"/>
+                            <field name="operation_id" readonly="1"/>
+                            <field name="config_id" readonly="1"/>
+                        </group>
+                        
+                        <group string="Información Adicional">
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="imported_date" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_ml_payment_summary_search" model="ir.ui.view">
+        <field name="name">ml.payment.summary.search</field>
+        <field name="model">ml.payment.summary</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Pagos">
+                <field name="payment_id"/>
+                <field name="buyer_document_number"/>
+                <field name="buyer_nickname"/>
+                <field name="order_id"/>
+                
+                <filter name="this_month" string="Este Mes" 
+                        domain="[('date_approved', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="last_month" string="Mes Anterior" 
+                        domain="[('date_approved', '&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
+                                ('date_approved', '&lt;', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Agrupar Por">
+                    <filter name="group_date" string="Fecha" context="{'group_by': 'date_approved:month'}"/>
+                    <filter name="group_operation_type" string="Tipo" context="{'group_by': 'operation_type'}"/>
+                    <filter name="group_buyer" string="Comprador" context="{'group_by': 'buyer_document_number'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ml_payment_summary" model="ir.actions.act_window">
+        <field name="name">Extracto de Pagos MP</field>
+        <field name="res_model">ml.payment.summary</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_this_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay pagos registrados
+            </p>
+            <p>
+                Los pagos se crean automáticamente al importar operaciones desde Mercado Libre.
+            </p>
+        </field>
+    </record>
+
+</odoo>

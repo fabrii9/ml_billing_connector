@@ -532,6 +532,12 @@ class MlOperation(models.Model):
         except Exception as e:
             _logger.warning(f"No se pudieron importar fees para {order_id}: {str(e)}")
         
+        # Crear resumen de pagos
+        try:
+            self.env['ml.payment.summary'].create_from_operation(operation)
+        except Exception as e:
+            _logger.warning(f"No se pudo crear resumen de pagos para {order_id}: {str(e)}")
+        
         return operation
 
     def _import_fees_from_order_data(self, order_data):

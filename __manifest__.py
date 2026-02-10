@@ -42,6 +42,7 @@
         'views/ml_oauth_templates.xml',
         'views/ml_operation_views.xml',
         'views/ml_payment_views.xml',
+        'views/ml_payment_summary_views.xml',
         'views/ml_api_config_views.xml',
         'wizard/ml_import_operations_wizard_views.xml',
         'wizard/ml_import_payments_wizard_views.xml',

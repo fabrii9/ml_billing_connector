@@ -45,6 +45,12 @@
                   sequence="5"
                   groups="ml_billing_connector.group_ml_user"/>
 
+        <menuitem id="menu_ml_payment_summary"
+                  name="Extracto de Pagos"
+                  parent="menu_ml_payments"
+                  action="action_ml_payment_summary"
+                  sequence="5"/>
+
         <menuitem id="menu_ml_payment_list"
                   name="Todos los Pagos"
                   parent="menu_ml_payments"
