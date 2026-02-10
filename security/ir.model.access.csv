@@ -23,3 +23,6 @@ access_ml_payment_summary_manager,ml.payment.summary.manager,model_ml_payment_su
 
 access_ml_import_payments_wizard_user,ml.import.payments.wizard.user,model_ml_import_payments_wizard,group_ml_user,1,1,1,1
 access_ml_import_payments_wizard_manager,ml.import.payments.wizard.manager,model_ml_import_payments_wizard,group_ml_manager,1,1,1,1
+
+access_ml_import_batch_user,ml.import.batch.user,model_ml_import_batch,group_ml_user,1,0,0,0
+access_ml_import_batch_manager,ml.import.batch.manager,model_ml_import_batch,group_ml_manager,1,1,1,1

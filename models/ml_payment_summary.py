@@ -46,6 +46,11 @@ class MlPaymentSummary(models.Model):
     config_id = fields.Many2one('ml.api.config', string='Configuración',
                                required=True, ondelete='cascade')
     
+    # Lote de importación
+    import_batch_id = fields.Many2one('ml.import.batch', string='Lote de Importación',
+                                     ondelete='set null', index=True,
+                                     help='Lote al que pertenece este pago')
+    
     # Metadatos
     company_id = fields.Many2one('res.company', string='Compañía',
                                 required=True,
@@ -60,11 +65,12 @@ class MlPaymentSummary(models.Model):
     ]
 
     @api.model
-    def create_from_operation(self, operation):
+    def create_from_operation(self, operation, import_batch_id=None):
         """
         Crea registros de resumen de pagos desde una operación importada
         
         :param operation: Registro de ml.operation
+        :param import_batch_id: ID del lote de importación (opcional)
         :return: Registros de ml.payment.summary creados
         """
         if not operation.raw_json:
@@ -121,6 +127,10 @@ class MlPaymentSummary(models.Model):
                 'config_id': operation.config_id.id,
                 'company_id': operation.company_id.id,
             }
+            
+            # Agregar lote de importación si existe
+            if import_batch_id:
+                vals['import_batch_id'] = import_batch_id
             
             try:
                 payment = self.create(vals)

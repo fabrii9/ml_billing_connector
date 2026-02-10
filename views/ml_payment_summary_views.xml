@@ -73,6 +73,7 @@
                 <field name="buyer_document_number"/>
                 <field name="buyer_nickname"/>
                 <field name="order_id"/>
+                <field name="import_batch_id"/>
                 
                 <filter name="this_month" string="Este Mes" 
                         domain="[('date_approved', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
@@ -80,7 +81,11 @@
                         domain="[('date_approved', '&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
                                 ('date_approved', '&lt;', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
                 
+                <separator/>
+                <filter string="Sin Lote" name="no_batch" domain="[('import_batch_id', '=', False)]"/>
+                
                 <group expand="0" string="Agrupar Por">
+                    <filter name="group_batch" string="Lote de Importación" context="{'group_by': 'import_batch_id'}"/>
                     <filter name="group_date" string="Fecha" context="{'group_by': 'date_approved:month'}"/>
                     <filter name="group_operation_type" string="Tipo" context="{'group_by': 'operation_type'}"/>
                     <filter name="group_buyer" string="Comprador" context="{'group_by': 'buyer_document_number'}"/>

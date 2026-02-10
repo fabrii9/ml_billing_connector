@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Tree View -->
+        <record id="view_ml_import_batch_tree" model="ir.ui.view">
+            <field name="name">ml.import.batch.tree</field>
+            <field name="model">ml.import.batch</field>
+            <field name="arch" type="xml">
+                <tree string="Lotes de Importación">
+                    <field name="name"/>
+                    <field name="date_import"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="user_id"/>
+                    <field name="total_operations"/>
+                    <field name="total_payments"/>
+                    <field name="total_errors"/>
+                    <field name="state" widget="badge" decoration-success="state == 'completed'" decoration-info="state == 'in_progress'" decoration-danger="state == 'failed'"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_ml_import_batch_form" model="ir.ui.view">
+            <field name="name">ml.import.batch.form</field>
+            <field name="model">ml.import.batch</field>
+            <field name="arch" type="xml">
+                <form string="Lote de Importación">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="in_progress,completed"/>
+                        <button name="action_view_payments" type="object" string="Ver Pagos" class="oe_highlight" attrs="{'invisible': [('total_payments', '=', 0)]}"/>
+                        <button name="action_export_payments" type="object" string="Exportar" attrs="{'invisible': [('total_payments', '=', 0)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="date_import"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                                <field name="user_id"/>
+                                <field name="config_id"/>
+                            </group>
+                            <group>
+                                <field name="total_operations"/>
+                                <field name="total_payments"/>
+                                <field name="total_errors"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Pagos Importados">
+                                <field name="payment_ids" readonly="1">
+                                    <tree>
+                                        <field name="payment_id"/>
+                                        <field name="operation_type"/>
+                                        <field name="amount" sum="Total"/>
+                                        <field name="date_approved"/>
+                                        <field name="buyer_document_number"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_ml_import_batch_search" model="ir.ui.view">
+            <field name="name">ml.import.batch.search</field>
+            <field name="model">ml.import.batch</field>
+            <field name="arch" type="xml">
+                <search string="Buscar Lotes de Importación">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="config_id"/>
+                    <filter string="En Progreso" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                    <filter string="Completados" name="completed" domain="[('state', '=', 'completed')]"/>
+                    <filter string="Fallidos" name="failed" domain="[('state', '=', 'failed')]"/>
+                    <separator/>
+                    <filter string="Hoy" name="today" domain="[('date_import', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))), ('date_import', '&lt;=', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+                    <filter string="Esta Semana" name="this_week" domain="[('date_import', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                    <filter string="Este Mes" name="this_month" domain="[('date_import', '&gt;=', datetime.datetime.now().strftime('%Y-%m-01'))]"/>
+                    <group expand="0" string="Agrupar por">
+                        <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Usuario" name="group_user" context="{'group_by': 'user_id'}"/>
+                        <filter string="Fecha de Importación" name="group_date" context="{'group_by': 'date_import'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_ml_import_batch" model="ir.actions.act_window">
+            <field name="name">Lotes de Importación</field>
+            <field name="res_model">ml.import.batch</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_completed': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No hay lotes de importación
+                </p>
+                <p>
+                    Los lotes de importación se crean automáticamente cada vez que importas operaciones de Mercado Libre.
+                </p>
+            </field>
+        </record>
+
+        <!-- Menu Item -->
+        <menuitem id="menu_ml_import_batch"
+                  name="Lotes de Importación"
+                  parent="menu_ml_root"
+                  action="action_ml_import_batch"
+                  sequence="30"/>
+
+    </data>
+</odoo>

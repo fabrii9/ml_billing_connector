@@ -87,30 +87,51 @@ class MlImportOperationsWizard(models.TransientModel):
             # Actualizar estado
             self.write({'state': 'importing'})
             
-            # Ejecutar importación
+            # Crear lote de importación
+            batch = self.env['ml.import.batch'].create({
+                'date_from': self.date_from,
+                'date_to': self.date_to,
+                'user_id': self.env.user.id,
+                'config_id': self.config_id.id,
+                'state': 'in_progress',
+            })
+            
+            # Ejecutar importación pasando el batch_id
             stats = self.env['ml.operation'].import_operations_from_ml(
                 config=self.config_id,
                 date_from=self.date_from,
                 date_to=self.date_to,
                 limit=self.limit_per_page,
+                import_batch_id=batch.id,
             )
             
-            # Actualizar estadísticas
+            # Actualizar el lote con estadísticas
+            batch.write({
+                'state': 'completed',
+                'total_operations': stats.get('created', 0) + stats.get('updated', 0),
+                'total_errors': stats.get('errors', 0),
+            })
+            
+            # Actualizar estadísticas del wizard
             self.write({
                 'state': 'done',
                 'total_fetched': stats.get('total_fetched', 0),
                 'total_created': stats.get('created', 0),
                 'total_updated': stats.get('updated', 0),
                 'total_errors': stats.get('errors', 0),
-                'result_message': self._format_result_message(stats),
+                'result_message': self._format_result_message(stats, batch),
             })
             
-            # Mostrar resultado y abrir operaciones importadas
-            return self._show_imported_operations()
+            # Mostrar los pagos del lote importado
+            return batch.action_view_payments()
             
         except Exception as e:
             error_msg = f"Error durante la importación: {str(e)}"
             _logger.error(error_msg)
+            
+            # Marcar lote como fallido si existe
+            if 'batch' in locals() and batch:
+                batch.write({'state': 'failed'})
             
             self.write({
                 'state': 'error',
@@ -119,9 +140,11 @@ class MlImportOperationsWizard(models.TransientModel):
             
             raise UserError(_(error_msg))
 
-    def _format_result_message(self, stats):
+    def _format_result_message(self, stats, batch=None):
         """Formatea el mensaje de resultado"""
         message = "Importación completada:\n\n"
+        if batch:
+            message += f"Lote: {batch.name}\n\n"
         message += f"• Órdenes consultadas: {stats.get('total_fetched', 0)}\n"
         message += f"• Nuevas operaciones creadas: {stats.get('created', 0)}\n"
         message += f"• Operaciones actualizadas: {stats.get('updated', 0)}\n"

@@ -398,7 +398,7 @@ class MlOperation(models.Model):
             return False
 
     @api.model
-    def import_operations_from_ml(self, config, date_from, date_to, limit=50):
+    def import_operations_from_ml(self, config, date_from, date_to, limit=50, import_batch_id=None):
         """
         Importa operaciones desde Mercado Libre
         
@@ -406,6 +406,7 @@ class MlOperation(models.Model):
         :param date_from: Fecha desde (datetime)
         :param date_to: Fecha hasta (datetime)
         :param limit: Límite de resultados por página
+        :param import_batch_id: ID del lote de importación (opcional)
         :return: Diccionario con estadísticas
         """
         _logger.info(f"Iniciando importación de operaciones ML desde {date_from} hasta {date_to}")
@@ -464,7 +465,7 @@ class MlOperation(models.Model):
                         # Crear savepoint antes de procesar
                         self.env.cr.execute(f'SAVEPOINT {savepoint_name}')
                         
-                        self._import_single_operation(config, str(order_id), stats)
+                        self._import_single_operation(config, str(order_id), stats, import_batch_id=import_batch_id)
                         
                         # Liberar savepoint si todo salió bien
                         self.env.cr.execute(f'RELEASE SAVEPOINT {savepoint_name}')
@@ -498,8 +499,11 @@ class MlOperation(models.Model):
         return stats
 
     @api.model
-    def _import_single_operation(self, config, order_id, stats):
-        """Importa una única operación"""
+    def _import_single_operation(self, config, order_id, stats, import_batch_id=None):
+        """Importa una única operación
+        
+        :param import_batch_id: ID del lote de importación (opcional)
+        """
         # Obtener detalle de la orden
         order_data = config._make_api_request(f'/orders/{order_id}')
         
@@ -537,7 +541,7 @@ class MlOperation(models.Model):
         
         # Crear resumen de pagos
         try:
-            self.env['ml.payment.summary'].create_from_operation(operation)
+            self.env['ml.payment.summary'].create_from_operation(operation, import_batch_id=import_batch_id)
         except Exception as e:
             _logger.warning(f"No se pudo crear resumen de pagos para {order_id}: {str(e)}")
         
