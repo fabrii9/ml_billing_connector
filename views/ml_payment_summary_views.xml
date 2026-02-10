@@ -6,16 +6,12 @@
         <field name="name">ml.payment.summary.tree</field>
         <field name="model">ml.payment.summary</field>
         <field name="arch" type="xml">
-            <tree string="Resumen de Pagos" create="false" delete="false">
+            <tree string="Extracto de Pagos" create="false" delete="false" export_xlsx="1">
                 <field name="payment_id" string="ID Operación MP"/>
                 <field name="operation_type" string="Tipo de Operación"/>
                 <field name="amount" string="Valor de la Compra" sum="Total"/>
-                <field name="currency_id" invisible="1"/>
                 <field name="date_approved" string="Fecha de Aprobación"/>
-                <field name="buyer_document_type" string="Tipo Doc"/>
                 <field name="buyer_document_number" string="Identificación del Comprador"/>
-                <field name="buyer_nickname"/>
-                <field name="order_id"/>
             </tree>
         </field>
     </record>
