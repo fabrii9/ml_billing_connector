@@ -78,12 +78,11 @@ class MlPaymentSummary(models.Model):
             _logger.info(f"Orden {operation.order_id} no tiene pagos")
             return self.env['ml.payment.summary']
         
-        # Obtener datos del comprador (DNI/CUIT)
-        buyer_doc_type, buyer_doc_number = self._get_buyer_document(
-            operation.config_id,
-            operation.order_id,
-            order_data.get('buyer', {}).get('id')
-        )
+        # Usar los datos del comprador que ya tiene la operación
+        buyer_doc_type = operation.buyer_doc_type or ''
+        buyer_doc_number = operation.buyer_doc_number or ''
+        
+        _logger.info(f"Orden {operation.order_id}: usando doc del operation - tipo={buyer_doc_type}, numero={buyer_doc_number}")
         
         created_payments = self.env['ml.payment.summary']
         
@@ -131,54 +130,6 @@ class MlPaymentSummary(models.Model):
                 _logger.error(f"Error al crear pago {payment_id}: {str(e)}")
         
         return created_payments
-
-    def _get_buyer_document(self, config, order_id, buyer_id):
-        """
-        Obtiene el tipo y número de documento del comprador
-        
-        :param config: Configuración de API
-        :param order_id: ID de la orden
-        :param buyer_id: ID del comprador
-        :return: Tuple (tipo_documento, numero_documento)
-        """
-        _logger.info(f"Obteniendo documento para orden {order_id}, buyer {buyer_id}")
-        
-        # Intentar primero desde el usuario (más confiable)
-        try:
-            if buyer_id:
-                _logger.info(f"Consultando /users/{buyer_id}")
-                buyer_info = config._make_api_request(f'/users/{buyer_id}')
-                identification = buyer_info.get('identification', {})
-                
-                doc_type = identification.get('type', '')
-                doc_number = identification.get('number', '')
-                
-                _logger.info(f"Usuario {buyer_id}: tipo={doc_type}, numero={doc_number}")
-                
-                if doc_number:
-                    return doc_type, doc_number
-                
-        except Exception as e:
-            _logger.warning(f"No se pudo obtener datos de usuario {buyer_id}: {str(e)}")
-        
-        # Si falla, intentar billing_info de la orden
-        try:
-            _logger.info(f"Consultando /orders/{order_id}/billing_info")
-            billing_info = config._make_api_request(f'/orders/{order_id}/billing_info')
-            
-            doc_type = billing_info.get('doc_type', '')
-            doc_number = billing_info.get('doc_number', '')
-            
-            _logger.info(f"Billing info orden {order_id}: tipo={doc_type}, numero={doc_number}")
-            
-            if doc_number:
-                return doc_type, doc_number
-            
-        except Exception as e:
-            _logger.warning(f"No se pudo obtener billing_info de orden {order_id}: {str(e)}")
-        
-        _logger.error(f"No se pudo obtener documento para orden {order_id}, buyer {buyer_id}")
-        return '', ''
 
     def _parse_ml_date(self, date_str):
         """Convierte fecha de ML a datetime de Odoo (sin timezone)"""
