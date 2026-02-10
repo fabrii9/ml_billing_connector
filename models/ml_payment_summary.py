@@ -172,12 +172,17 @@ class MlPaymentSummary(models.Model):
         return '', ''
 
     def _parse_ml_date(self, date_str):
-        """Convierte fecha de ML a datetime de Odoo"""
+        """Convierte fecha de ML a datetime de Odoo (sin timezone)"""
         if not date_str:
             return False
         
         from dateutil import parser
         try:
-            return parser.parse(date_str)
+            dt = parser.parse(date_str)
+            # Convertir a naive datetime (sin timezone)
+            if dt.tzinfo is not None:
+                # Convertir a UTC y quitar timezone
+                dt = dt.astimezone(None).replace(tzinfo=None)
+            return dt
         except:
             return False
