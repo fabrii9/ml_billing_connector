@@ -360,8 +360,11 @@ class MlOperation(models.Model):
         if not billing_info:
             return
         
-        doc_type = billing_info.get('doc_type', '').upper()
-        doc_number = billing_info.get('doc_number', '')
+        # La API devuelve una estructura anidada: {"billing_info": {"doc_type": "...", "doc_number": "..."}}
+        billing_data = billing_info.get('billing_info', billing_info)
+        
+        doc_type = billing_data.get('doc_type', '').upper()
+        doc_number = billing_data.get('doc_number', '')
         
         # Mapear tipo de documento
         doc_type_mapped = False
