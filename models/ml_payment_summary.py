@@ -141,27 +141,19 @@ class MlPaymentSummary(models.Model):
         :param buyer_id: ID del comprador
         :return: Tuple (tipo_documento, numero_documento)
         """
-        try:
-            # Intentar obtener billing_info de la orden
-            billing_info = config._make_api_request(f'/orders/{order_id}/billing_info')
-            
-            doc_type = billing_info.get('doc_type', '')
-            doc_number = billing_info.get('doc_number', '')
-            
-            if doc_number:
-                return doc_type, doc_number
-            
-        except Exception as e:
-            _logger.warning(f"No se pudo obtener billing_info de orden {order_id}: {str(e)}")
+        _logger.info(f"Obteniendo documento para orden {order_id}, buyer {buyer_id}")
         
-        # Si no hay billing_info, intentar desde buyer
+        # Intentar primero desde el usuario (más confiable)
         try:
             if buyer_id:
+                _logger.info(f"Consultando /users/{buyer_id}")
                 buyer_info = config._make_api_request(f'/users/{buyer_id}')
                 identification = buyer_info.get('identification', {})
                 
                 doc_type = identification.get('type', '')
                 doc_number = identification.get('number', '')
+                
+                _logger.info(f"Usuario {buyer_id}: tipo={doc_type}, numero={doc_number}")
                 
                 if doc_number:
                     return doc_type, doc_number
@@ -169,6 +161,23 @@ class MlPaymentSummary(models.Model):
         except Exception as e:
             _logger.warning(f"No se pudo obtener datos de usuario {buyer_id}: {str(e)}")
         
+        # Si falla, intentar billing_info de la orden
+        try:
+            _logger.info(f"Consultando /orders/{order_id}/billing_info")
+            billing_info = config._make_api_request(f'/orders/{order_id}/billing_info')
+            
+            doc_type = billing_info.get('doc_type', '')
+            doc_number = billing_info.get('doc_number', '')
+            
+            _logger.info(f"Billing info orden {order_id}: tipo={doc_type}, numero={doc_number}")
+            
+            if doc_number:
+                return doc_type, doc_number
+            
+        except Exception as e:
+            _logger.warning(f"No se pudo obtener billing_info de orden {order_id}: {str(e)}")
+        
+        _logger.error(f"No se pudo obtener documento para orden {order_id}, buyer {buyer_id}")
         return '', ''
 
     def _parse_ml_date(self, date_str):
